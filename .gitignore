@@ -1,0 +1,13 @@
+# Archivos de configuración del IDE
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+# Ejecutables de Windows y Linux
+*.exe
+generator
+sorter
+
+# Archivos de datos pesados (los que vas a crear mañana)
+*.bin
+*.dat
