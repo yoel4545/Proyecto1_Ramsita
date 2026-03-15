@@ -4,4 +4,6 @@ project(Proyecto1_Ramsita)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(generator generator.cpp)
-add_executable(sorter sorter.cpp PagedArray.cpp PagedArray.h)
+add_executable(sorter sorter.cpp PagedArray.cpp PagedArray.h
+        algoritmos_ordenamiento.cpp
+        algoritmos_ordenamiento.h)
