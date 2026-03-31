@@ -29,9 +29,10 @@ private:
     int pageCount; //la cantidad de paginas que van a caber en ram
     fstream ramsita_file;// el archivo con los datos binarios
     Page* ram;// el espacio que reservaremos en la memoria, ejemplo, si se piden 4 paginas, entonces el espacio reservado sera 4 paginas
-    int timer; //contador para el lru
+    long long timer; //contador para el lru
     int pageHits;//contador para la cantida de page hits que sucedan
     int pageFaults;//contador para la cantida de page faults que sucedan
+    int ultimoUsado();
 public:
     //constructor
     PagedArray(string nombreArchivo, int pageSize, int pageCount);

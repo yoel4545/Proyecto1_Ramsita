@@ -34,10 +34,11 @@ PagedArray::PagedArray(string nombreArchivo, int pageSize, int pageCount ) {
  *  ejemplo, ram[1].data=new int[512]; esto lo que hace es hacernos un espacio de 2048 bytes en memoria, el resto de usada y ultimo acceso es para
  *  la logica del LRU y saber cual cambiar
  */
+
     ram = new Page[pageCount];
     for (int i=0;i<pageCount;i++) {
         ram[i].data=new int[pageSize];
-        ram[i].numero_pagina=-1;
+        ram[i].numero_pagina=-1;//al inicio se le da /1 como diciendo, esta pagina es un papel en blanco y no representa ninguna pagina aun
         ram[i].usada=false;
         ram[i].ultimo_acceso=0;
     }
@@ -46,16 +47,79 @@ PagedArray::PagedArray(string nombreArchivo, int pageSize, int pageCount ) {
 
 
     //Logica del destructor, para que no haya memory leak
-    void Destructor() {
-        for (int i=1; i<pageCount;i++ ) {
+}
+PagedArray :: ~PagedArray() {
+    for(int i=0; i<pageCount;i++){
+        delete[] ram[i].data;
+    }
+    delete[] ram;
+    ramsita_file.close();
 
+}
+//esta funcion lo que hace es retornar el indice de la pagina en ram ultima que se uso
+ int PagedArray::ultimoUsado() {
+    //esta verificacion es porque el for lo empezamos en ram[1] por lo tanto no verifica si el primero es -1, ya despues de ahi funciona bien
+    if (ram[0].numero_pagina==-1) {
+        return 0;
+    }
+    int numeroUltimo = 0;
+    int ultimo = ram[0].ultimo_acceso;
+
+    for (int i=1;i<pageCount;i++) {
+
+        if (ram[i].numero_pagina==-1) {
+            return i;
+        }
+        if (ram[i].ultimo_acceso<ultimo) {
+            //recordar que ram lo que tiene son indices del 0 al pageCount, no el nombre de las paginas
+            ultimo=ram[i].ultimo_acceso;
+            numeroUltimo=i;
         }
     }
+    return numeroUltimo;
 
+}
+int& PagedArray::operator[](int index) {
+    int numeroPagina = index/pageSize;
+    int lugar = index%pageSize;
+    for (int i=0;i<pageCount;i++) {
+        if (ram[i].numero_pagina==numeroPagina) {
+            ram[i].ultimo_acceso= this->timer;
+            this->timer++;
+            pageHits++;
+            return ram[i].data[lugar];
+        }
+
+    }
+
+    //si ese index que pidio el algoritmo no estaba cargado en las paginas en memoria,
+    //entonces se hace usa la funcion ultimo usado para saber cual fue la ultima pagina cargada en ram que se uso
+    int ultimaPaginaUsada= ultimoUsado();
+    pageFaults++;
+    ramsita_file.clear();
+
+    //esto es guardar lo que habia en la pagina menos usada y guardarlo en donde estaba en el file normal
+    if (ram[ultimaPaginaUsada].numero_pagina !=-1){
+    ramsita_file.seekp(pageSize*ram[ultimaPaginaUsada].numero_pagina*sizeof(int), ios::beg);
+    ramsita_file.write(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));
+}
+    //ahora lo que hacemos es meter la pagina que el algoritmo andaba buscando en la que sacamos de ram
+    ramsita_file.seekg(numeroPagina*pageSize*sizeof(int),ios::beg);
+    ramsita_file.read(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));
+    ram[ultimaPaginaUsada].numero_pagina=numeroPagina;
+    ram[ultimaPaginaUsada].ultimo_acceso=this->timer;
+    this->timer++;
+
+
+    return ram[ultimaPaginaUsada].data[lugar];
 
 }
 
+void PagedArray::estadisticas() {
+cout<<"Hubo "<<pageHits<<" pageHits y hubo "<< pageFaults<<" pageFaults en total."<<endl;
+}
 
+//Si en algun algorimto no esta pidiendo alguna posicion, loq ue tenemos que hacer es divir por el pageSize, y eso nos daria el numero de apgina en el que se encuentra
 /*
 fstream ramsita_file;
 int x[5]={10,20,30,40,50};

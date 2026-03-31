@@ -10,7 +10,7 @@
 #include <cstdlib> //para rand y srand
 using namespace std;
 
-// esta funcion es capricho mio para hacer un switch, se le da un char* y retorna 1,2 o 3 dependiendo si dice SMALL MEDIUM O LARGE.
+// esta funcion es para hacer un switch, se le da un char* y retorna 1,2 o 3 dependiendo si dice SMALL MEDIUM O LARGE.
 
 int convertidor_de_argv2(string SIZE) {
     if (SIZE=="SMALL") {
@@ -40,24 +40,24 @@ int convertidor_de_argv2(string SIZE) {
 // argv[4] es <OUT FILE PATH>
 // es la ruta donde va a estar el archivo y le puedes poner el nombre ahi junto con el .bin .dat
 // ejemplo de lo que puedes poner ahi:
-//C:\Users\yoelr\Desktop\datos.bin
+//C:\Users\yoelr\Desktop\datos.bin, si se pone solo datos.bin queda en la misma carpeta del proyecto
 
 int main(int argc,char* argv[]) {
-    srand(time(0));
+    srand(time(0)); // se utiliza para que sea un random mas random
     fstream ramsita_file;
 
     if (argc != 5) {
         cout<<"Haz tenido un error a la hora de pasarle los argumentos a generator, recuerda que debe verse asi: generator –size <SIZE> -output <OUTPUT FILE PATH>";
         return 0;
     }
-    int numero = convertidor_de_argv2(argv[2]);
+    int numero = convertidor_de_argv2(argv[2]); // esto le da a numero un numero del 1 al 3, para ver si es small medium o large
     int cantidad;
     switch (numero) {
         // si es un small entonces va a ser de tamanio 256 mb, que son 268435456 bytes, que son 67108864 ints
         // si es un medium entonces va a ser de tamanio 512 mb, que son 536870912 bytes, que son 134217728 ints
         // si es un large entonces va a ser de tamanio 1Gb que son 1073741824 bytes, que son 268435456 ints
             case 1:
-            cantidad= 67108864;
+            cantidad= 67108864; //se le da la cantidad de enteros que recibe cada tama;o
             break;
             case 2:
             cantidad= 134217728;
