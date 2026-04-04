@@ -11,3 +11,4 @@ sorter
 # Archivos de datos pesados (los que vas a crear mañana)
 *.bin
 *.dat
+*.txt

@@ -5,6 +5,7 @@
 #ifndef PROYECTO1_RAMSITA_ALGORITMOS_ORDENAMIENTO_H
 #define PROYECTO1_RAMSITA_ALGORITMOS_ORDENAMIENTO_H
 #include "PagedArray.h"
+
 void quickSort(PagedArray& arr, int low, int high);
 
 void insertionSort(PagedArray& arr, int n);

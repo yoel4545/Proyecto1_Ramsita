@@ -15,10 +15,9 @@
 using namespace std;
 
 struct Page {
-    int* data;
-    int numero_pagina;
-    bool usada;
-    int ultimo_acceso;
+    int* data;//en la pagina cada pagina va a tener un puntero que es la informacion de los numeros
+    int numero_pagina;//numero de pagina es el basicamente el nombre de la pagina
+    int ultimo_acceso;// se usa con el timer que se va subiendo y cuando se usa la pagina se iguala al timer
 };
 
 
@@ -29,10 +28,12 @@ private:
     int pageCount; //la cantidad de paginas que van a caber en ram
     fstream ramsita_file;// el archivo con los datos binarios
     Page* ram;// el espacio que reservaremos en la memoria, ejemplo, si se piden 4 paginas, entonces el espacio reservado sera 4 paginas
-    long long timer; //contador para el lru
-    int pageHits;//contador para la cantida de page hits que sucedan
-    int pageFaults;//contador para la cantida de page faults que sucedan
+    unsigned long long timer; //contador para el lru
+    unsigned long long pageHits;//contador para la cantida de page hits que sucedan
+    unsigned long long pageFaults;//contador para la cantidad de page faults que sucedan
     int ultimoUsado();
+    long long cantidadElementos;
+    int elementosEnPagina(int numeroPagina) const;// muestra la cantidad de numeros que tiene la pagina(se usa para la pagina final)
 public:
     //constructor
     PagedArray(string nombreArchivo, int pageSize, int pageCount);

@@ -66,20 +66,21 @@ argv[10] es <PAGE-COUNT> que es la cantidad maxima de paginas que va a haber en 
 */
 
 int main(int argc,char* argv[]) {
-    fstream original; // se abre en ifstream porque solo se va a leer para copiarlo en la copia
-    fstream copia; // se abre en offstream ya que lo vamos a usar para escribirle
+
     const int tamañoIntermedio = 4096;
     if (argc != 11) {
         cout<<"Haz tenido un error a la hora de pasarle los argumentos a generator, recuerda que debe verse asi:"<<endl << "sorter –input <INPUT FILE PATH> -output <OUTPUT FILE PATH> -alg <ALGORITMO> -pageSize <PAGE-SIZE> -pageCount <PAGE-COUNT>";
         return 0;
     }
-
+    fstream original; // se abre en ifstream porque solo se va a leer para copiarlo en la copia
+    fstream copia; // se abre en offstream ya que lo vamos a usar para escribirle
     //abrimos los dos archivos
-    original.open(argv[2],ios::in|ios::binary); // no se especifica el ios::in ya que por defecto es in
-    copia.open(argv[4],ios::out| ios::binary); //tampoco se especifica el ios::out
+    original.open(argv[2],ios::in|ios::binary);
+    copia.open(argv[4],ios::out| ios::binary|ios::trunc);
 
+    int tamaño = 0;
     if (original && copia) {  // si se abren los dos correctamente, copiamos lo que esta en el original a la copia
-    char intermedio[tamañoIntermedio];
+        char intermedio[tamañoIntermedio];
         //cada ves que entra al while mete los datos en el intermedio, si logra meterlos todos entonces sigue en el while, cuando ya no los meta todos, es un false, entonces sale del while
         while (original.read(intermedio,tamañoIntermedio)) {
             copia.write(intermedio,tamañoIntermedio);
@@ -87,55 +88,77 @@ int main(int argc,char* argv[]) {
         if (original.gcount()>0) { //g.count lo que hace es darnos la cantidad de bytes que se leyeron en el ultimo read
             copia.write(intermedio,original.gcount());
         }
+
+        tamaño = copia.tellp() / sizeof(int);
+
         original.close();
         copia.close();
+
     }
+    else {
+        cout<< "No se pudieron abrir los archivos"<< endl;
+        return 1;
+    }
+
+
+
+    // como vienen de terminal son strings, se pagasan a ints
     int pageSize = stoi(argv[8]);
     int pageCount = stoi(argv[10]);
-    copia.open(argv[4],ios::in| ios:: binary);
-    copia.seekg(0,ios::end);
 
-    int tamaño = copia.tellg()/sizeof(int);
-    copia.close();
+    // inicializamos el arreglo con los datos necesarios que son el nombre del archivo el pageSize y el pageCount
+    {
     PagedArray arreglo(argv[4],pageSize,pageCount);
-    clock_t inicio = clock();
-    int algoritmo = convertidor_de_argv6(argv[6]);
-    switch (algoritmo) {
-        case 1: quickSort(arreglo,0,tamaño-1);
-            break;
-        case 2: bubbleSort(arreglo,tamaño);
-            break;
-        case 3: selectionSort(arreglo,tamaño);
-            break;
-        case 4: insertionSort(arreglo,tamaño);
-            break;
-        case 5: shellSort(arreglo, tamaño);
-            break;
-    }
-    clock_t fin= clock();
-    double tiempo = double(fin-inicio)/CLOCKS_PER_SEC;
-    cout<< "El algoritmo ustilizado fue: "<< argv[6]<<endl;
-    cout<<"El algoritmo duro " << tiempo<<" segundos en ordenar el archivo."<<endl;
-    arreglo.estadisticas();
 
-    ifstream copiaLector;
+        clock_t inicio = clock();// se inicia el tiempo antes de los algoritmos
+        int algoritmo = convertidor_de_argv6(argv[6]);
+        switch (algoritmo) {
+            case 1: quickSort(arreglo,0,tamaño-1);
+                break;
+            case 2: bubbleSort(arreglo,tamaño);
+                break;
+            case 3: selectionSort(arreglo,tamaño);
+                break;
+            case 4: insertionSort(arreglo,tamaño);
+                break;
+            case 5: shellSort(arreglo, tamaño);
+                break;
+        }
+        clock_t fin= clock();// se termina el tiempo apenas terminan de ordenar
+        double tiempo = double(fin-inicio)/CLOCKS_PER_SEC;
+        cout<< "El algoritmo ustilizado fue: "<< argv[6]<<endl;
+        cout<<"El algoritmo duro " << tiempo<<" segundos en ordenar el archivo."<<endl;
+        arreglo.estadisticas(); // se tiran los pagehtis y page faults
+    }
+    ifstream copiaLector;// abrimos el archivo que ya esta ordenado en modo lectura
     ofstream legible;
 
     copiaLector.open(argv[4], ios::binary);
 
     string nombreLegible = string(argv[4]);
-    nombreLegible = nombreLegible.substr(0, nombreLegible.find_last_of(".")) + ".txt";
+    nombreLegible = nombreLegible.substr(0, nombreLegible.find_last_of(".")) + ".txt"; // se le agrga txt
 
     legible.open(nombreLegible);
-/*
-    char intermedio2[tamañoIntermedio];
-    if (copiaLector && legible) {
-        while (copiaLector.read(interme))
-        */
+    int numero;// se inicializa la variable para ir pazando los numero uno por uno
+    // Leer el primer número
+    if (copiaLector.read(reinterpret_cast<char*>(&numero), sizeof(int))) {
+        legible << numero;// se le mete el primero para que los siguientes puedan llevar la coma primero
 
-
-
+        // Leer el resto de números con la coma primero
+        while (copiaLector.read(reinterpret_cast<char*>(&numero), sizeof(int))) {
+            legible << "," << numero;
+        }
     }
+
+    copiaLector.close();
+    legible.close();
+    cout << "Archivo legible creado: " << nombreLegible << endl;
+
+
+    return 0;
+    }
+
+
 
 
 

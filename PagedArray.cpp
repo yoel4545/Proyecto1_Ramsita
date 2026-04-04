@@ -8,6 +8,7 @@
 #include <string> //para poder usar string en el convertidor
 #include <ctime> //para time
 #include <cstdlib> //para rand y srand
+#include <cstring>
 using namespace std;
 #include "PagedArray.h"
 
@@ -21,8 +22,18 @@ PagedArray::PagedArray(string nombreArchivo, int pageSize, int pageCount ) {
     this->pageFaults=0;
     this->pageSize =pageSize;
     this->pageCount=pageCount;
+    this->timer = 0;
 
     this->ramsita_file.open(nombreArchivo,ios::in|ios::out|ios::binary);
+
+
+    ramsita_file.seekg(0,ios::end);
+    long long  tamañoarchivo = ramsita_file.tellg();
+    cantidadElementos = tamañoarchivo/sizeof(int);
+    ramsita_file.seekg(0,ios::beg);
+
+
+
 
 /*
  * en esta parte es asi, tenemos
@@ -39,7 +50,6 @@ PagedArray::PagedArray(string nombreArchivo, int pageSize, int pageCount ) {
     for (int i=0;i<pageCount;i++) {
         ram[i].data=new int[pageSize];
         ram[i].numero_pagina=-1;//al inicio se le da /1 como diciendo, esta pagina es un papel en blanco y no representa ninguna pagina aun
-        ram[i].usada=false;
         ram[i].ultimo_acceso=0;
     }
 
@@ -48,14 +58,37 @@ PagedArray::PagedArray(string nombreArchivo, int pageSize, int pageCount ) {
 
     //Logica del destructor, para que no haya memory leak
 }
-PagedArray :: ~PagedArray() {
-    for(int i=0; i<pageCount;i++){
+PagedArray::~PagedArray() {
+    // ESTO ES LO QUE GUARDA LOS CAMBIOS FINALES
+
+    for (int i = 0; i < pageCount; i++) {
+        if (ram[i].numero_pagina != -1) {
+            int enPagina = elementosEnPagina(ram[i].numero_pagina);
+            ramsita_file.clear();
+            ramsita_file.seekp(pageSize * ram[i].numero_pagina * sizeof(int), ios::beg);
+            ramsita_file.write(reinterpret_cast<char*>(ram[i].data), enPagina * sizeof(int));
+        }
+    }
+
+
+    for(int i=0; i<pageCount; i++) {
         delete[] ram[i].data;
     }
     delete[] ram;
     ramsita_file.close();
-
 }
+
+
+int PagedArray::elementosEnPagina(int numeroPagina) const {
+    int inicial = numeroPagina* pageSize;
+    int final = inicial + pageSize -1; //-1 porque es el ultimo elemento antes de que pase a otra pagina
+    if (final >= cantidadElementos) {
+        return cantidadElementos-inicial; //esto es para si es la pagina es la ultima, entonces que al inicio de esa pagina se le reste el tama;o de todo, entonces da el tama;o de esa pagina final
+    }
+    return pageSize; //si no es la pagina final, todas tienen el mismo tama;o que es page size
+}
+
+
 //esta funcion lo que hace es retornar el indice de la pagina en ram ultima que se uso
  int PagedArray::ultimoUsado() {
     //esta verificacion es porque el for lo empezamos en ram[1] por lo tanto no verifica si el primero es -1, ya despues de ahi funciona bien
@@ -105,12 +138,19 @@ int& PagedArray::operator[](int index) {
 
     //esto es guardar lo que habia en la pagina menos usada y guardarlo en donde estaba en el file normal
     if (ram[ultimaPaginaUsada].numero_pagina !=-1){ //se hace esta verificacion porque si es -1 entonces no tiene nada, entonces no es necesario meter nada en disco
-    ramsita_file.seekp(pageSize*ram[ultimaPaginaUsada].numero_pagina*sizeof(int), ios::beg);// se busca el lugar donde inician los datos de esa pagina
-    ramsita_file.write(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));//se escriben los datos de esa pagina
+        int enPaginaV = elementosEnPagina(ram[ultimaPaginaUsada].numero_pagina);
+        ramsita_file.clear();
+    ramsita_file.seekp((long long)pageSize*ram[ultimaPaginaUsada].numero_pagina*sizeof(int), ios::beg);// se busca el lugar donde inician los datos de esa pagina
+    ramsita_file.write(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),enPaginaV*sizeof(int));//se escriben los datos de esa pagina
 }
+
+
+
     //ahora lo que hacemos es meter la pagina que el algoritmo andaba buscando en la que sacamos de ram
-    ramsita_file.seekg(numeroPagina*pageSize*sizeof(int),ios::beg);//se busca la pagina saltando desde el inicio con, size of int, que es 4, * page size, que se define y el numero de pagina para saber cuantos bloques saltar
-    ramsita_file.read(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));//se lee y se mete en la pagina en ram
+    int enPaginaN = elementosEnPagina((numeroPagina));
+    ramsita_file.clear();
+    ramsita_file.seekg((long long )numeroPagina*pageSize*sizeof(int),ios::beg);//se busca la pagina saltando desde el inicio con, size of int, que es 4, * page size, que se define y el numero de pagina para saber cuantos bloques saltar
+    ramsita_file.read(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),enPaginaN*sizeof(int));//se lee y se mete en la pagina en ram
     ram[ultimaPaginaUsada].numero_pagina=numeroPagina;
     ram[ultimaPaginaUsada].ultimo_acceso=this->timer;
     this->timer++;
@@ -151,6 +191,6 @@ if (ramsita_file) {
         int dato_leido;
         ramsita_file.seekg(1*sizeof(int),ios::beg);
         ramsita_file.read(reinterpret_cast<char*>(&dato_leido),sizeof(int));
-        cout<<dato_leido<<endl;
+        cout<<dato_leido<<endl; mmm
     }
 */

@@ -9,26 +9,32 @@
 using namespace std;
 
 //quicksort
-int partition(PagedArray& arr, int low, int high) {
-    int pivot = arr[high];
-    int i = (low - 1);
+void quickSort(PagedArray& array, int low, int high)
+{
+    int i = low;
+    int j = high;
+    int pivot = array[(i + j) / 2];
+    int temp;
 
-    for (int j = low; j <= high - 1; j++) {
-        if (arr[j] < pivot) {
+    while (i <= j)
+    {
+        while (array[i] < pivot)
             i++;
-            std::swap(arr[i], arr[j]);
+        while (array[j] > pivot)
+            j--;
+        if (i <= j)
+        {
+            temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            i++;
+            j--;
         }
     }
-    std::swap(arr[i + 1], arr[high]);
-    return (i + 1);
-}
-
-void quickSort(PagedArray& arr, int low, int high) {
-    if (low < high) {
-        int pi = partition(arr, low, high);
-        quickSort(arr, low, pi - 1);
-        quickSort(arr, pi + 1, high);
-    }
+    if (j > low)
+        quickSort(array, low, j);
+    if (i < high)
+        quickSort(array, i, high);
 }
 
 
@@ -36,37 +42,35 @@ void bubbleSort(PagedArray& arr, int n) {
     for (int i = 0; i < n - 1; i++) {
         for (int j = 0; j < n - i - 1; j++) {
             if (arr[j] > arr[j + 1]) {
-                std::swap(arr[j], arr[j + 1]);
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
             }
         }
     }
 }
 
 
-void selectionSort(PagedArray& arr, int n) {
-    for (int i = 0; i < n - 1; i++) {
-        int min_idx = i;
-        for (int j = i + 1; j < n; j++) {
-            if (arr[j] < arr[min_idx]) {
-                min_idx = j;
-            }
-        }
-        if (min_idx != i) {
-            std::swap(arr[min_idx], arr[i]);
-        }
-    }
-}
 
 
-void shellSort(PagedArray& arr, int n) {
-    for (int gap = n / 2; gap > 0; gap /= 2) {
-        for (int i = gap; i < n; i += 1) {
-            int temp = arr[i];
-            int j;
-            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap) {
-                arr[j] = arr[j - gap];
-            }
-            arr[j] = temp;
+void selectionSort(PagedArray& array, int n)
+{
+    int temp;
+    int min;
+
+    for (int i = 0; i < n; ++i)
+    {
+        min = i;
+        for (int j = i + 1; j < n; ++j)
+        {
+            if (array[j] < array[min])
+                min = j;
+        }
+        if (min != i)
+        {
+            temp = array[i];
+            array[i] = array[min];
+            array[min] = temp;
         }
     }
 }
@@ -82,6 +86,33 @@ void insertionSort(PagedArray& arr, int n) {
             j = j - 1;
         }
         arr[j + 1] = key;
+    }
+}
+
+void shellSort(PagedArray& arr, int n)
+{
+    // Start with a big gap, then reduce the gap
+    for (int gap = n/2; gap > 0; gap /= 2)
+    {
+        // Do a gapped insertion sort for this gap size.
+        // The first gap elements a[0..gap-1] are already in gapped order
+        // keep adding one more element until the entire array is
+        // gap sorted
+        for (int i = gap; i < n; i += 1)
+        {
+            // add a[i] to the elements that have been gap sorted
+            // save a[i] in temp and make a hole at position i
+            int temp = arr[i];
+
+            // shift earlier gap-sorted elements up until the correct
+            // location for a[i] is found
+            int j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap)
+                arr[j] = arr[j - gap];
+
+            // put temp (the original a[i]) in its correct location
+            arr[j] = temp;
+        }
     }
 }
 
