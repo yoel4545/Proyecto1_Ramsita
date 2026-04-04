@@ -70,18 +70,21 @@ PagedArray :: ~PagedArray() {
         if (ram[i].numero_pagina==-1) {
             return i;
         }
-        if (ram[i].ultimo_acceso<ultimo) {
+        if (ram[i].ultimo_acceso<ultimo) {// se busca el menor .ultimo_acceso que seria el ultimo que se ha usado
             //recordar que ram lo que tiene son indices del 0 al pageCount, no el nombre de las paginas
-            ultimo=ram[i].ultimo_acceso;
+            ultimo=ram[i].ultimo_acceso;//
             numeroUltimo=i;
         }
     }
     return numeroUltimo;
 
 }
+
+
 int& PagedArray::operator[](int index) {
-    int numeroPagina = index/pageSize;
-    int lugar = index%pageSize;
+    int numeroPagina = index/pageSize; // aqui agarramos el indice que no esten dando y nos tira la pagina en la que esta ese indice
+    int lugar = index%pageSize; // aqui agarramos el indice y nos tira la posicion
+    // este es el pagehit, cuando resulta que lo que se estaba buscando si estaba cargado en las paginas de ram, si no lo encuentra entoces se sigue el codigo de abajo
     for (int i=0;i<pageCount;i++) {
         if (ram[i].numero_pagina==numeroPagina) {
             ram[i].ultimo_acceso= this->timer;
@@ -95,17 +98,19 @@ int& PagedArray::operator[](int index) {
     //si ese index que pidio el algoritmo no estaba cargado en las paginas en memoria,
     //entonces se hace usa la funcion ultimo usado para saber cual fue la ultima pagina cargada en ram que se uso
     int ultimaPaginaUsada= ultimoUsado();
+    // si el codigo llego hasta aqui entonces significa q es un pagefault tonces se suma 1
     pageFaults++;
+    //esto es para evitar errores al buscar
     ramsita_file.clear();
 
     //esto es guardar lo que habia en la pagina menos usada y guardarlo en donde estaba en el file normal
-    if (ram[ultimaPaginaUsada].numero_pagina !=-1){
-    ramsita_file.seekp(pageSize*ram[ultimaPaginaUsada].numero_pagina*sizeof(int), ios::beg);
-    ramsita_file.write(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));
+    if (ram[ultimaPaginaUsada].numero_pagina !=-1){ //se hace esta verificacion porque si es -1 entonces no tiene nada, entonces no es necesario meter nada en disco
+    ramsita_file.seekp(pageSize*ram[ultimaPaginaUsada].numero_pagina*sizeof(int), ios::beg);// se busca el lugar donde inician los datos de esa pagina
+    ramsita_file.write(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));//se escriben los datos de esa pagina
 }
     //ahora lo que hacemos es meter la pagina que el algoritmo andaba buscando en la que sacamos de ram
-    ramsita_file.seekg(numeroPagina*pageSize*sizeof(int),ios::beg);
-    ramsita_file.read(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));
+    ramsita_file.seekg(numeroPagina*pageSize*sizeof(int),ios::beg);//se busca la pagina saltando desde el inicio con, size of int, que es 4, * page size, que se define y el numero de pagina para saber cuantos bloques saltar
+    ramsita_file.read(reinterpret_cast<char*>(ram[ultimaPaginaUsada].data),pageSize*sizeof(int));//se lee y se mete en la pagina en ram
     ram[ultimaPaginaUsada].numero_pagina=numeroPagina;
     ram[ultimaPaginaUsada].ultimo_acceso=this->timer;
     this->timer++;
