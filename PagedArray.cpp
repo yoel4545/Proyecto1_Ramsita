@@ -52,10 +52,13 @@ PagedArray::PagedArray(string nombreArchivo, int pageSize, int pageCount ) {
         ram[i].numero_pagina=-1;//al inicio se le da /1 como diciendo, esta pagina es un papel en blanco y no representa ninguna pagina aun
         ram[i].ultimo_acceso=0;
     }
-
-
-
-
+    // se calcula la cantidad de paginas y se crea un array con esa cantidad de indices
+    int totalPaginasArchivo = (cantidadElementos + pageSize - 1) / pageSize;
+    mapaPaginas = new int[totalPaginasArchivo];
+// todos esos indices le metemos un -1
+    for (int i = 0; i < totalPaginasArchivo; i++) {
+        mapaPaginas[i] = -1;
+    }
     //Logica del destructor, para que no haya memory leak
 }
 PagedArray::~PagedArray() {
@@ -75,6 +78,7 @@ PagedArray::~PagedArray() {
         delete[] ram[i].data;
     }
     delete[] ram;
+    delete[] mapaPaginas;
     ramsita_file.close();
 }
 
@@ -117,7 +121,20 @@ int PagedArray::elementosEnPagina(int numeroPagina) const {
 int& PagedArray::operator[](int index) {
     int numeroPagina = index/pageSize; // aqui agarramos el indice que no esten dando y nos tira la pagina en la que esta ese indice
     int lugar = index%pageSize; // aqui agarramos el indice y nos tira la posicion
+
     // este es el pagehit, cuando resulta que lo que se estaba buscando si estaba cargado en las paginas de ram, si no lo encuentra entoces se sigue el codigo de abajo
+    //aqui metemos el -1 o el lugar en la ram que pertenece
+    int posicionEnMapeo= mapaPaginas[numeroPagina];
+// si no es -1 entonces si esta en ram y es un page hit
+    if (posicionEnMapeo!=-1) {
+        ram[posicionEnMapeo].ultimo_acceso=this->timer;
+        pageHits++;
+        return ram[posicionEnMapeo].data[lugar];
+    }
+
+
+    // funcion anterior al mapeo
+  /*
     for (int i=0;i<pageCount;i++) {
         if (ram[i].numero_pagina==numeroPagina) {
             ram[i].ultimo_acceso= this->timer;
@@ -127,17 +144,17 @@ int& PagedArray::operator[](int index) {
         }
 
     }
-
+*/
     //si ese index que pidio el algoritmo no estaba cargado en las paginas en memoria,
     //entonces se hace usa la funcion ultimo usado para saber cual fue la ultima pagina cargada en ram que se uso
     int ultimaPaginaUsada= ultimoUsado();
     // si el codigo llego hasta aqui entonces significa q es un pagefault tonces se suma 1
     pageFaults++;
-    //esto es para evitar errores al buscar
-    ramsita_file.clear();
+
 
     //esto es guardar lo que habia en la pagina menos usada y guardarlo en donde estaba en el file normal
     if (ram[ultimaPaginaUsada].numero_pagina !=-1){ //se hace esta verificacion porque si es -1 entonces no tiene nada, entonces no es necesario meter nada en disco
+        mapaPaginas[ram[ultimaPaginaUsada].numero_pagina]=-1;
         int enPaginaV = elementosEnPagina(ram[ultimaPaginaUsada].numero_pagina);
         ramsita_file.clear();
     ramsita_file.seekp((long long)pageSize*ram[ultimaPaginaUsada].numero_pagina*sizeof(int), ios::beg);// se busca el lugar donde inician los datos de esa pagina
@@ -155,7 +172,7 @@ int& PagedArray::operator[](int index) {
     ram[ultimaPaginaUsada].ultimo_acceso=this->timer;
     this->timer++;
 
-
+    mapaPaginas[numeroPagina] = ultimaPaginaUsada;
     return ram[ultimaPaginaUsada].data[lugar];
 
 }
@@ -164,8 +181,11 @@ void PagedArray::estadisticas() {
 cout<<"Hubo "<<pageHits<<" pageHits y hubo "<< pageFaults<<" pageFaults en total."<<endl;
 }
 
+
+
 //Si en algun algorimto no esta pidiendo alguna posicion, loq ue tenemos que hacer es divir por el pageSize, y eso nos daria el numero de apgina en el que se encuentra
 /*
+ codigo de prueba********
 fstream ramsita_file;
 int x[5]={10,20,30,40,50};
 ramsita_file.open("ramsita.txt", ios::out| ios::binary);

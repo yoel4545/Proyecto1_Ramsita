@@ -28,6 +28,7 @@ private:
     int pageCount; //la cantidad de paginas que van a caber en ram
     fstream ramsita_file;// el archivo con los datos binarios
     Page* ram;// el espacio que reservaremos en la memoria, ejemplo, si se piden 4 paginas, entonces el espacio reservado sera 4 paginas
+    int* mapaPaginas;
     unsigned long long timer; //contador para el lru
     unsigned long long pageHits;//contador para la cantida de page hits que sucedan
     unsigned long long pageFaults;//contador para la cantidad de page faults que sucedan

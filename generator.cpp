@@ -56,14 +56,19 @@ int main(int argc,char* argv[]) {
         // si es un small entonces va a ser de tamanio 256 mb, que son 268435456 bytes, que son 67108864 ints
         // si es un medium entonces va a ser de tamanio 512 mb, que son 536870912 bytes, que son 134217728 ints
         // si es un large entonces va a ser de tamanio 1Gb que son 1073741824 bytes, que son 268435456 ints
+
+        //tamaños nuevos
+        // si es un small entonces va a ser de tamanio 32 mb, que son 33554432 bytes, que son 8388608 ints
+        // si es un medium entonces va a ser de tamanio 64 mb, que son 67108864 bytes, que son 16777216 ints
+        // si es un large entonces va a ser de tamanio 128 que son 134217728 bytes, que son 33554432 ints
             case 1:
-            cantidad= 67108864; //se le da la cantidad de enteros que recibe cada tama;o
+            cantidad= 8388608; //se le da la cantidad de enteros que recibe cada tama;o
             break;
             case 2:
-            cantidad= 134217728;
+            cantidad= 16777216;
             break;
             case 3:
-            cantidad= 268435456;
+            cantidad= 33554432;
             break;
             default:
             cout <<"Tamaño no válido"<<endl;
@@ -86,7 +91,7 @@ int main(int argc,char* argv[]) {
 
 
 
-
+//codigo de prueba*********
     //ramsita_file.open("output.dat",ios::out | ios::binary);
     //if (ramsita_file) {
      //   ramsita_file.write(reinterpret_cast<char*>(&x), sizeof(int));

@@ -1,3 +1,10 @@
+# Objetos de compilación y archivos temporales
+*.o
+*.obj
+
+
+create_test.cpp
+
 # Archivos de configuración del IDE
 .idea/
 cmake-build-debug/
