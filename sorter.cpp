@@ -126,7 +126,7 @@ int main(int argc,char* argv[]) {
         }
         clock_t fin= clock();// se termina el tiempo apenas terminan de ordenar
         double tiempo = double(fin-inicio)/CLOCKS_PER_SEC;
-        cout<< "El algoritmo ustilizado fue: "<< argv[6]<<endl;
+        cout<< "El algoritmo utilizado fue: "<< argv[6]<<endl;
         cout<<"El algoritmo duro " << tiempo<<" segundos en ordenar el archivo."<<endl;
         arreglo.estadisticas(); // se tiran los pagehtis y page faults
     }

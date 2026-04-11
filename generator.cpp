@@ -10,6 +10,10 @@
 #include <cstdlib> //para rand y srand
 using namespace std;
 
+const int SMALL= 8*1024*1024;
+const int MEDIUM= 16*1024*1024;
+const int LARGE= 32*1024*1024;
+
 // esta funcion es para hacer un switch, se le da un char* y retorna 1,2 o 3 dependiendo si dice SMALL MEDIUM O LARGE.
 
 int convertidor_de_argv2(string SIZE) {
@@ -62,13 +66,13 @@ int main(int argc,char* argv[]) {
         // si es un medium entonces va a ser de tamanio 64 mb, que son 67108864 bytes, que son 16777216 ints
         // si es un large entonces va a ser de tamanio 128 que son 134217728 bytes, que son 33554432 ints
             case 1:
-            cantidad= 8388608; //se le da la cantidad de enteros que recibe cada tama;o
+            cantidad= SMALL; //se le da la cantidad de enteros que recibe cada tama;o
             break;
             case 2:
-            cantidad= 16777216;
+            cantidad= MEDIUM;
             break;
             case 3:
-            cantidad= 33554432;
+            cantidad= LARGE;
             break;
             default:
             cout <<"Tamaño no válido"<<endl;
